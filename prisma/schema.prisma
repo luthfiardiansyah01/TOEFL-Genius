@@ -1,0 +1,123 @@
+// TOEFL Learning App - Database Schema
+// GLM-5.3 powered AI tutor with gamification, adaptive learning & progress tracking
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Single-learner profile (app is personal/single-user). The app always uses
+/// the first row (created on demand) as the active learner profile.
+model UserProfile {
+  id               String   @id @default(cuid())
+  name             String   @default("Learner")
+  avatar           String?
+  xp               Int      @default(0)
+  level            Int      @default(1)
+  streak           Int      @default(0)
+  longestStreak    Int      @default(0)
+  lastActivityDate String?  // YYYY-MM-DD (local)
+  totalQuestions   Int      @default(0)
+  correctQuestions Int      @default(0)
+  // Estimated TOEFL iBT section scores (0-30 each, total 0-120)
+  estimatedScore   Int      @default(0)
+  readingScore     Int      @default(0)
+  listeningScore   Int      @default(0)
+  speakingScore    Int      @default(0)
+  writingScore     Int      @default(0)
+  dailyGoalXp      Int      @default(80)
+  dailyXpEarned    Int      @default(0)
+  dailyXpDate      String?  // YYYY-MM-DD
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  activities       ActivityLog[]
+  attempts         QuestionAttempt[]
+  achievements     UserAchievement[]
+  weaknesses       Weakness[]
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  profileId   String
+  type        String   // reading | listening | speaking | writing | quiz | game | mock | tutor
+  skill       String?  // reading | listening | speaking | writing | vocabulary | grammar
+  title       String?
+  score       Int?     // percentage 0-100
+  xpEarned    Int      @default(0)
+  correct     Int?
+  total       Int?
+  durationSec Int?
+  metadata    String?  // JSON string
+  createdAt   DateTime @default(now())
+
+  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, createdAt])
+}
+
+model QuestionAttempt {
+  id            String   @id @default(cuid())
+  profileId     String
+  skill         String   // reading | listening | structure | vocabulary | speaking | writing
+  subskill      String?  // main_idea | inference | detail | vocabulary_in_context | ...
+  difficulty    String   @default("medium") // easy | medium | hard
+  question      String   // JSON: { prompt, passage?, choices?, answer }
+  userAnswer    String?
+  correctAnswer String?
+  isCorrect     Boolean  @default(false)
+  explanation   String?
+  createdAt     DateTime @default(now())
+
+  profile       UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, skill, createdAt])
+  @@index([profileId, isCorrect])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique // first_quiz, streak_7, level_5, score_80, ...
+  title       String
+  description String
+  icon        String   // lucide icon name
+  category    String   @default("learning") // learning | streak | score | xp | mastery
+  threshold   Int      @default(0)
+  tier        String   @default("bronze") // bronze | silver | gold | platinum
+
+  userLinks   UserAchievement[]
+}
+
+model UserAchievement {
+  id           String    @id @default(cuid())
+  profileId    String
+  achievementId String
+  unlocked     Boolean   @default(false)
+  progress     Int       @default(0)
+  unlockedAt   DateTime?
+
+  profile      UserProfile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  achievement  Achievement  @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, achievementId])
+}
+
+model Weakness {
+  id         String   @id @default(cuid())
+  profileId  String
+  skill      String
+  subskill   String?
+  errorCount Int      @default(0)
+  totalCount Int      @default(0)
+  lastSeen   DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  profile    UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, skill, subskill])
+  @@index([profileId, errorCount])
+}
