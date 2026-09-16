@@ -10,10 +10,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Single-learner profile (app is personal/single-user). The app always uses
-/// the first row (created on demand) as the active learner profile.
+/// An application account (email + password). Each User owns one UserProfile.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("USER") // USER | ADMIN
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile      UserProfile?
+}
+
+/// Per-user learning profile: XP, level, streak, scores, achievements, weaknesses.
 model UserProfile {
   id               String   @id @default(cuid())
+  userId           String?  @unique // links to User (optional for legacy rows)
   name             String   @default("Learner")
   avatar           String?
   xp               Int      @default(0)
@@ -35,6 +48,7 @@ model UserProfile {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  user             User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   activities       ActivityLog[]
   attempts         QuestionAttempt[]
   achievements     UserAchievement[]

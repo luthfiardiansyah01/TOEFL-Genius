@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getProfile } from "@/lib/profile";
+import { getAuthUserId } from "@/lib/auth";
 import { recommendNext } from "@/lib/ai";
 import { levelFromXp } from "@/lib/constants";
 import type { ProgressData, ActivityFeedItem, WeaknessItem } from "@/lib/types";
@@ -8,7 +9,11 @@ import type { ProgressData, ActivityFeedItem, WeaknessItem } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const profile = await getProfile();
+  const userId = await getAuthUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const profile = await getProfile(userId);
 
   const recentActivities = await db.activityLog.findMany({
     where: { profileId: profile.id },

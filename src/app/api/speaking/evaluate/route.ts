@@ -5,11 +5,16 @@ import { recordActivity } from "@/lib/gamification";
 import { db } from "@/lib/db";
 import { XP_REWARDS } from "@/lib/constants";
 import { getProfile } from "@/lib/profile";
+import { getAuthUserId } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const contentType = req.headers.get("content-type") || "";
     let prompt = "";
     let audioBase64 = "";
@@ -51,7 +56,7 @@ export async function POST(req: NextRequest) {
     const evaluation = await evaluateSpeaking({ prompt, transcript });
 
     // store speaking score
-    const profile = await getProfile();
+    const profile = await getProfile(userId);
     await db.userProfile.update({
       where: { id: profile.id },
       data: { speakingScore: Math.max(profile.speakingScore, evaluation.score) },
@@ -59,6 +64,7 @@ export async function POST(req: NextRequest) {
 
     const xpEarned = XP_REWARDS.speakingSubmission + Math.round((evaluation.score / 30) * 20);
     const result = await recordActivity({
+      userId,
       type: "speaking",
       skill: "speaking",
       title: "Speaking Practice",

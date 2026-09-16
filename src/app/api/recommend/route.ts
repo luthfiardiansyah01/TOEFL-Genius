@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getProfile } from "@/lib/profile";
+import { getAuthUserId } from "@/lib/auth";
 import { recommendNext } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const profile = await getProfile();
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const profile = await getProfile(userId);
     const weaknesses = await db.weakness.findMany({
       where: { profileId: profile.id, totalCount: { gte: 2 } },
       orderBy: { errorCount: "desc" },

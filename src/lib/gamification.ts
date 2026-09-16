@@ -17,6 +17,7 @@ export interface ApplyResult {
 }
 
 export async function recordAnswer(opts: {
+  userId: string;
   skill: SkillKey | string;
   subskill?: string;
   difficulty: string;
@@ -26,7 +27,7 @@ export async function recordAnswer(opts: {
   correctAnswer?: string;
   explanation?: string;
 }): Promise<ApplyResult> {
-  const profile = await getProfile();
+  const profile = await getProfile(opts.userId);
   const today = todayStr();
   const yesterday = shiftDay(today, -1);
 
@@ -114,6 +115,7 @@ export async function recordAnswer(opts: {
 }
 
 export async function recordActivity(opts: {
+  userId: string;
   type: string;
   skill?: string;
   title?: string;
@@ -124,7 +126,7 @@ export async function recordActivity(opts: {
   durationSec?: number;
   metadata?: unknown;
 }): Promise<ApplyResult> {
-  const profile = await getProfile();
+  const profile = await getProfile(opts.userId);
   const today = todayStr();
   const yesterday = shiftDay(today, -1);
 

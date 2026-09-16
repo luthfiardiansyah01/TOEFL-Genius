@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { recordActivity } from "@/lib/gamification";
+import { getAuthUserId } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 // Generic activity logger for quiz/game/mock completions (no per-question scoring)
 export async function POST(req: NextRequest) {
   try {
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
     const {
       type,
@@ -32,6 +37,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "type is required" }, { status: 400 });
     }
     const result = await recordActivity({
+      userId,
       type,
       skill,
       title,

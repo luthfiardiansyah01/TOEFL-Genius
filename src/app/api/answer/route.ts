@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { recordAnswer } from "@/lib/gamification";
+import { getAuthUserId } from "@/lib/auth";
 import type { ChoiceQuestion } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
     const { question, selectedIndex } = body as {
       question: ChoiceQuestion;
@@ -19,6 +24,7 @@ export async function POST(req: NextRequest) {
     }
     const isCorrect = selectedIndex === question.answerIndex;
     const result = await recordAnswer({
+      userId,
       skill: question.skill,
       subskill: question.subskill,
       difficulty: question.difficulty,

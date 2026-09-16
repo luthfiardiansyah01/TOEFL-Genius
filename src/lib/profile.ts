@@ -1,31 +1,33 @@
 import { db } from "./db";
 
 /**
- * Returns the active learner profile (single-user app).
- * Creates it on first run, and ensures achievements exist.
+ * Returns the learner profile for the given user id.
+ * Creates it on first run (linked to the user) and ensures achievements exist.
+ * Throws if userId is missing — callers must authenticate first.
  */
-export async function getProfile() {
+export async function getProfile(userId: string) {
+  if (!userId) throw new Error("getProfile requires an authenticated userId");
+
   let profile = await db.userProfile.findFirst({
-    orderBy: { createdAt: "asc" },
+    where: { userId },
   });
 
   if (!profile) {
+    // fall back to finding the user to get a display name
+    const user = await db.user.findUnique({ where: { id: userId } });
     profile = await db.userProfile.create({
-      data: { name: "Learner" },
+      data: { userId, name: user?.name ?? "Learner" },
     });
     await seedAchievements(profile.id);
   } else {
-    // ensure achievements seeded (idempotent)
     await seedAchievements(profile.id);
   }
 
   // Refresh streak + daily XP on read
   const today = todayStr();
   if (profile.lastActivityDate && profile.lastActivityDate !== today) {
-    // streak may have broken
     const yesterday = shiftDay(today, -1);
     if (profile.lastActivityDate !== yesterday) {
-      // broken streak
       if (profile.streak !== 0) {
         profile = await db.userProfile.update({
           where: { id: profile.id },
@@ -34,7 +36,6 @@ export async function getProfile() {
       }
     }
   }
-  // reset daily XP if date changed
   if (profile.dailyXpDate !== today) {
     profile = await db.userProfile.update({
       where: { id: profile.id },
@@ -58,8 +59,7 @@ export function shiftDay(dateStr: string, delta: number): string {
   return todayStr(dt);
 }
 
-async function seedAchievements(profileId: string) {
-  // Import here to avoid circular import at module load
+export async function seedAchievements(profileId: string) {
   const { ACHIEVEMENT_DEFS } = await import("./constants");
   for (const def of ACHIEVEMENT_DEFS) {
     const existing = await db.achievement.findUnique({ where: { code: def.code } });
@@ -77,7 +77,6 @@ async function seedAchievements(profileId: string) {
       });
     }
   }
-  // link to user
   const all = await db.achievement.findMany();
   for (const a of all) {
     await db.userAchievement.upsert({

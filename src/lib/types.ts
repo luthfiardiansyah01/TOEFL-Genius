@@ -10,7 +10,8 @@ export type ViewKey =
   | "games"
   | "mock"
   | "progress"
-  | "tutor";
+  | "tutor"
+  | "admin";
 
 export type SkillKey =
   | "reading"

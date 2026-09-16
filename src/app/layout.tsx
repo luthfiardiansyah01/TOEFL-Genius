@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TOEFL Genius — AI Tutor by GLM-5.3",
   description:
-    "Modern, mobile-first TOEFL learning app with AI-powered reading, listening, speaking, writing, quizzes, mini games, mock tests and adaptive learning.",
+    "Modern, mobile-first TOEFL learning app with AI-powered reading, listening, speaking, writing, quizzes, mini games, mock tests and adaptive learning. Development by MoedaTrace.",
   keywords: [
     "TOEFL",
     "English learning",
@@ -28,8 +28,14 @@ export const metadata: Metadata = {
     "listening",
     "speaking",
     "writing",
+    "MoedaTrace",
   ],
-  authors: [{ name: "TOEFL Genius" }],
+  authors: [{ name: "MoedaTrace", url: "https://github.com/MoedaTrace" }],
+  creator: "MoedaTrace",
+  publisher: "MoedaTrace",
+  applicationName: "TOEFL Genius",
+  generator: "MoedaTrace",
+  copyright: "© MoedaTrace. All rights reserved.",
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
@@ -52,6 +58,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* 
+          ============================================================
+          TOEFL Genius — AI Tutor by GLM-5.3
+          Development by MoedaTrace © 2025
+          https://github.com/MoedaTrace
+          All rights reserved. Unauthorized copying or redistribution
+          of this software is prohibited.
+          ============================================================
+        */}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >

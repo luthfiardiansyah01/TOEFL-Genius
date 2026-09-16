@@ -50,6 +50,13 @@ import {
   Trash2,
   CornerDownLeft,
   CircleDot,
+  Code,
+  Github,
+  ShieldCheck,
+  Users,
+  Search,
+  RotateCcw,
+  Mail,
   type LucideIcon,
 } from "lucide-react";
 
@@ -105,6 +112,13 @@ const map: Record<string, LucideIcon> = {
   Trash2,
   CornerDownLeft,
   CircleDot,
+  Code,
+  Github,
+  ShieldCheck,
+  Users,
+  Search,
+  RotateCcw,
+  Mail,
 };
 
 export function Icon({

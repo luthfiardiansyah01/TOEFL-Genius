@@ -4,11 +4,16 @@ import { recordActivity } from "@/lib/gamification";
 import { db } from "@/lib/db";
 import { XP_REWARDS } from "@/lib/constants";
 import { getProfile } from "@/lib/profile";
+import { getAuthUserId } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
     const { prompt, essay, taskType } = body as {
       prompt: string;
@@ -25,7 +30,7 @@ export async function POST(req: NextRequest) {
     const evaluation = await evaluateWriting({ prompt, essay, taskType });
 
     // store the writing score on the profile (overwrites latest)
-    const profile = await getProfile();
+    const profile = await getProfile(userId);
     await db.userProfile.update({
       where: { id: profile.id },
       data: { writingScore: Math.max(profile.writingScore, evaluation.score) },
@@ -33,6 +38,7 @@ export async function POST(req: NextRequest) {
 
     const xpEarned = XP_REWARDS.writingSubmission + Math.round((evaluation.score / 30) * 20);
     const result = await recordActivity({
+      userId,
       type: "writing",
       skill: "writing",
       title: taskType === "integrated" ? "Integrated Writing" : "Independent Writing",

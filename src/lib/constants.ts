@@ -62,7 +62,7 @@ export const NAV_ITEMS: {
   key: ViewKey;
   label: string;
   icon: string;
-  group: "learn" | "test" | "you";
+  group: "learn" | "test" | "you" | "admin";
 }[] = [
   { key: "dashboard", label: "Home", icon: "LayoutDashboard", group: "learn" },
   { key: "reading", label: "Reading", icon: "BookOpen", group: "learn" },
@@ -74,6 +74,7 @@ export const NAV_ITEMS: {
   { key: "mock", label: "Mock Test", icon: "ClipboardCheck", group: "test" },
   { key: "progress", label: "Progress", icon: "TrendingUp", group: "you" },
   { key: "tutor", label: "AI Tutor", icon: "Sparkles", group: "you" },
+  { key: "admin", label: "Admin", icon: "ShieldCheck", group: "admin" },
 ];
 
 // Level curve: XP needed to reach next level grows gradually.

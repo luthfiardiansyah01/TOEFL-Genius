@@ -45,7 +45,7 @@ export function DashboardView() {
       {/* Greeting + daily goal */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-medium text-muted-foreground">{greeting},</p>
+          <p className="text-sm font-semibold text-foreground/70">{greeting},</p>
           <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
             {p.name} 👋
           </h1>
@@ -154,7 +154,7 @@ export function DashboardView() {
             <div key={s.label} className="rounded-2xl border border-border bg-background p-3">
               <div className="mb-2 flex items-center gap-1.5">
                 <span className="size-2 rounded-full" style={{ background: s.color }} />
-                <span className="text-xs font-medium text-muted-foreground">{s.label}</span>
+                <span className="text-xs font-semibold text-foreground/80">{s.label}</span>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-extrabold tabular-nums">{s.value}</span>
@@ -197,7 +197,7 @@ export function DashboardView() {
               <p className="mt-0.5 truncate text-sm font-semibold">
                 {data.recommendation.title}
               </p>
-              <p className="line-clamp-1 text-xs text-muted-foreground">
+              <p className="line-clamp-1 text-xs font-medium text-foreground/75">
                 {data.recommendation.reason}
               </p>
             </div>
@@ -311,7 +311,7 @@ export function DashboardView() {
           <h2 className="text-sm font-bold">Tip of the day</h2>
           <div className="flex items-start gap-2.5 rounded-2xl bg-amber-500/10 p-3">
             <Icon name="Lightbulb" className="mt-0.5 size-4 shrink-0 text-amber-500" />
-            <p className="text-sm leading-relaxed text-foreground/90">{tip}</p>
+            <p className="text-sm leading-relaxed text-foreground/85">{tip}</p>
           </div>
           <div className="mt-auto flex items-center gap-2 rounded-2xl border border-border p-3">
             <Icon name="Sparkles" className="size-4 text-primary" />

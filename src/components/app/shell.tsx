@@ -17,6 +17,15 @@ import { useTheme } from "next-themes";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ViewKey } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const MOBILE_PRIMARY: ViewKey[] = ["dashboard", "reading", "quiz", "progress"];
 
@@ -26,6 +35,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const { data } = useProgress();
   const [moreOpen, setMoreOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
+  const { user, logout, isAdmin } = useAuth();
 
   const p = data?.progress;
   const level = p?.level ?? 1;
@@ -34,6 +44,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const levelPct = data?.levelProgressPct ?? 0;
   const intoLevel = data?.intoLevel ?? 0;
   const neededForLevel = data?.neededForLevel ?? 1;
+  const userName = user?.name ?? "Learner";
+  const userInitial = userName.charAt(0).toUpperCase();
 
   const go = (v: ViewKey) => {
     setView(v);
@@ -88,6 +100,55 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <Icon name="Sun" className="hidden size-4 dark:block" />
               <Icon name="Moon" className="size-4 dark:hidden" />
             </button>
+            {/* User menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Account menu"
+                  className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-bold text-white shadow-sm transition hover:opacity-90"
+                >
+                  {userInitial}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold">{userName}</span>
+                  <span className="truncate text-xs font-normal text-muted-foreground">
+                    {user?.email}
+                  </span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => go("progress")}>
+                  <Icon name="TrendingUp" className="mr-2 size-4" />
+                  My progress
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    setTheme(resolvedTheme === "dark" ? "light" : "dark")
+                  }
+                >
+                  <Icon
+                    name={resolvedTheme === "dark" ? "Sun" : "Moon"}
+                    className="mr-2 size-4"
+                  />
+                  {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="text-rose-600 focus:text-rose-600 dark:text-rose-300"
+                >
+                  <Icon name="Square" className="mr-2 size-4" />
+                  Sign out
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-[10px] font-medium text-muted-foreground">
+                  <Icon name="ShieldCheck" className="size-3 text-primary" />
+                  Development by{" "}
+                  <span className="font-bold text-foreground">MoedaTrace</span>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -95,23 +156,32 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="mx-auto flex w-full max-w-6xl flex-1">
         {/* Desktop sidebar */}
         <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border/60 p-3 lg:flex scroll-area-thin">
-          <SidebarNav view={view} go={go} />
-          <div className="mt-auto rounded-2xl border border-border bg-gradient-to-br from-emerald-500/10 to-teal-500/5 p-3">
-            <div className="flex items-center gap-3">
-              <Ring
-                value={levelPct}
-                size={56}
-                stroke={6}
-                barClass="text-primary"
-              >
-                <span className="text-sm font-bold">{level}</span>
-              </Ring>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold">{levelTitle(level)}</p>
-                <p className="truncate text-[11px] text-muted-foreground">
-                  {neededForLevel - intoLevel} XP to next level
-                </p>
+          <SidebarNav view={view} go={go} isAdmin={isAdmin} />
+          <div className="mt-auto flex flex-col gap-2">
+            <div className="rounded-2xl border border-border bg-gradient-to-br from-emerald-500/10 to-teal-500/5 p-3">
+              <div className="flex items-center gap-3">
+                <Ring
+                  value={levelPct}
+                  size={56}
+                  stroke={6}
+                  barClass="text-primary"
+                >
+                  <span className="text-sm font-bold">{level}</span>
+                </Ring>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold">{levelTitle(level)}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {neededForLevel - intoLevel} XP to next level
+                  </p>
+                </div>
               </div>
+            </div>
+            <div className="flex items-center justify-center gap-1.5 rounded-xl border border-border/60 bg-card/40 px-2 py-1.5 text-[10px] font-semibold text-muted-foreground">
+              <Icon name="Code" className="size-3 text-primary" />
+              <span>
+                Development by{" "}
+                <span className="font-bold text-foreground">MoedaTrace</span>
+              </span>
             </div>
           </div>
         </aside>
@@ -167,7 +237,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 <SheetTitle>Explore</SheetTitle>
               </SheetHeader>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                {NAV_ITEMS.map((item) => (
+                {NAV_ITEMS.filter((n) => n.group !== "admin" || isAdmin).map((item) => (
                   <button
                     key={item.key}
                     onClick={() => go(item.key)}
@@ -183,6 +253,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
                   </button>
                 ))}
               </div>
+              <div className="mt-4 flex flex-col items-center gap-0.5 text-center">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+                  <Icon name="Code" className="size-3.5 text-primary" />
+                  Development by{" "}
+                  <span className="font-bold text-foreground">MoedaTrace</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground/80">
+                  © {new Date().getFullYear()} MoedaTrace · All rights reserved.
+                </p>
+              </div>
             </SheetContent>
           </Sheet>
         </div>
@@ -191,11 +271,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SidebarNav({ view, go }: { view: ViewKey; go: (v: ViewKey) => void }) {
-  const groups: { label: string; key: "learn" | "test" | "you" }[] = [
+function SidebarNav({
+  view,
+  go,
+  isAdmin,
+}: {
+  view: ViewKey;
+  go: (v: ViewKey) => void;
+  isAdmin: boolean;
+}) {
+  const groups: { label: string; key: "learn" | "test" | "you" | "admin" }[] = [
     { label: "Learn", key: "learn" },
     { label: "Practice", key: "test" },
     { label: "You", key: "you" },
+    ...(isAdmin ? [{ label: "Administration", key: "admin" as const }] : []),
   ];
   return (
     <nav className="flex flex-col gap-4">
@@ -213,7 +302,9 @@ function SidebarNav({ view, go }: { view: ViewKey; go: (v: ViewKey) => void }) {
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition",
                   active
-                    ? "bg-primary/10 text-primary"
+                    ? item.group === "admin"
+                      ? "bg-violet-500/10 text-violet-600 dark:text-violet-300"
+                      : "bg-primary/10 text-primary"
                     : "text-foreground/80 hover:bg-accent",
                 )}
               >
