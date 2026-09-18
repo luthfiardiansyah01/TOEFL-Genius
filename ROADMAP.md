@@ -16,21 +16,24 @@ Built with Next.js 16 + React 19 + TypeScript, Tailwind + shadcn/ui, Prisma/SQLi
 ## Phase 2 — Priorities
 
 ### 1. Security hardening
-- Remove hardcoded admin credentials from `src/lib/admin-seed.ts`; seed via env var or one-time setup flow instead.
-- Add rate limiting to `/api/auth/register` and the login endpoint.
-- Add password reset and email verification flows.
+- [x] Remove hardcoded admin credentials from `src/lib/admin-seed.ts`; seed via `ADMIN_EMAIL`/`ADMIN_PASSWORD` env vars instead, and rotate the previously-committed password.
+- [x] Untrack `.env` and `db/custom.db` from git (they contained/held real credentials and runtime data).
+- [ ] Add rate limiting to `/api/auth/register` and the login endpoint.
+- [ ] Add password reset and email verification flows.
 
 ### 2. AI provider decoupling
-- Replace direct dependence on `z-ai-web-dev-sdk` with an internal abstraction layer so a real provider (e.g. Anthropic API) can be swapped in.
-- Confirm current AI calls even function outside the z.ai sandbox before relying on them in production.
+- [x] Replace direct dependence on `z-ai-web-dev-sdk` for chat features with an internal `ChatProvider` abstraction (`src/lib/ai/`), selectable via `AI_PROVIDER` env var (`zai` default, `anthropic` alternative).
+- [ ] Speech-to-text/text-to-speech (`src/lib/audio.ts`) still depend solely on `z-ai-web-dev-sdk` — no alternative provider wired up yet.
+- [ ] Confirm current AI calls even function outside the z.ai sandbox before relying on them in production.
 
 ### 3. Deployment & environment portability
-- Fix `.env`: remove the hardcoded Linux sandbox `DATABASE_URL` path, add `NEXTAUTH_SECRET`/`NEXTAUTH_URL`, and provide a `.env.example`.
-- Replace sandbox-specific deploy tooling (`Caddyfile`, `.zscripts/*.sh`) with a real pipeline: Dockerfile and/or `vercel.json`, plus CI (GitHub Actions) for lint/build/test on push.
+- [x] Fix `.env`/`.env.example`: relative `DATABASE_URL`, documented `NEXTAUTH_SECRET`/`NEXTAUTH_URL`/`AI_PROVIDER`/`ANTHROPIC_API_KEY`.
+- [ ] Replace sandbox-specific deploy tooling (`Caddyfile`, `.zscripts/*.sh`) with a real pipeline: Dockerfile and/or `vercel.json`, plus CI (GitHub Actions) for lint/build/test on push.
 
 ### 4. Testing
-- Introduce a test framework (Vitest or Jest) and add coverage for API routes and gamification logic (`src/lib/gamification.ts`) at minimum.
-- Consider Playwright for critical user flows (register/login, quiz attempt, mock test).
+- [x] Introduce a test framework (Vitest, `bun run test`) with unit tests for pure logic: leveling/XP curve and achievement thresholds (`src/lib/constants.test.ts`), streak date math (`src/lib/profile.test.ts`), and AI response JSON parsing (`src/lib/ai.test.ts`).
+- [ ] Add coverage for API routes and the DB-coupled parts of `src/lib/gamification.ts` (needs a test DB strategy — e.g. an in-memory/throwaway SQLite instance per test run).
+- [ ] Consider Playwright for critical user flows (register/login, quiz attempt, mock test).
 
 ### 5. Database migrations
 - Move from `prisma db push` to versioned `prisma migrate` so schema changes have history and safe rollback.

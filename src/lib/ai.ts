@@ -22,7 +22,7 @@ async function chatJSON<T>(userPrompt: string, system = SYSTEM_TUTOR): Promise<T
   return extractJSON<T>(raw);
 }
 
-function extractJSON<T>(raw: string): T {
+export function extractJSON<T>(raw: string): T {
   let text = raw.trim();
   // strip markdown fences
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
