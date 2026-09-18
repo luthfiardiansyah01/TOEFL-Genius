@@ -36,7 +36,8 @@ Built with Next.js 16 + React 19 + TypeScript, Tailwind + shadcn/ui, Prisma/SQLi
 - [ ] Consider Playwright for critical user flows (register/login, quiz attempt, mock test).
 
 ### 5. Database migrations
-- Move from `prisma db push` to versioned `prisma migrate` so schema changes have history and safe rollback.
+- [x] Baseline the existing schema into `prisma/migrations/20260916000000_init/` (matches what was already deployed via `db push`, marked applied via `prisma migrate resolve --applied`) and add `db:deploy` (`prisma migrate deploy`) for production rollout.
+- [ ] Going forward, author schema changes with `bun run db:migrate` (`prisma migrate dev`) instead of `db:push` so they get a versioned, reviewable migration file. `db:push` is kept only because `.zscripts/*.sh` (sandbox boot scripts, see item 3) still call it — retire it once that tooling is replaced.
 
 ### 6. Routing
 - Convert the single-page, state-switched view system into real Next.js routes per feature for deep-linking, SEO, and easier analytics.
