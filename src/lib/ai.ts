@@ -1,4 +1,4 @@
-import ZAI from "z-ai-web-dev-sdk";
+import { chat } from "./ai/index";
 import type {
   ChoiceQuestion,
   Difficulty,
@@ -11,12 +11,6 @@ import type {
   TutorMessage,
 } from "./types";
 
-let _zai: Awaited<ReturnType<typeof ZAI.create>> | null = null;
-async function zai() {
-  if (!_zai) _zai = await ZAI.create();
-  return _zai;
-}
-
 const SYSTEM_TUTOR =
   "You are GLM-5.3, an expert TOEFL iBT AI tutor inside a learning app. " +
   "You explain clearly, encourage learners, and give concrete, actionable feedback. " +
@@ -24,15 +18,7 @@ const SYSTEM_TUTOR =
   "When asked to produce JSON, output ONLY valid JSON (no markdown fences, no commentary).";
 
 async function chatJSON<T>(userPrompt: string, system = SYSTEM_TUTOR): Promise<T> {
-  const client = await zai();
-  const completion = await client.chat.completions.create({
-    messages: [
-      { role: "assistant", content: system },
-      { role: "user", content: userPrompt },
-    ],
-    thinking: { type: "disabled" },
-  });
-  const raw = completion.choices[0]?.message?.content ?? "";
+  const raw = await chat({ system, messages: [{ role: "user", content: userPrompt }] });
   return extractJSON<T>(raw);
 }
 
@@ -51,15 +37,7 @@ function extractJSON<T>(raw: string): T {
 }
 
 async function chatText(userPrompt: string, system = SYSTEM_TUTOR): Promise<string> {
-  const client = await zai();
-  const completion = await client.chat.completions.create({
-    messages: [
-      { role: "assistant", content: system },
-      { role: "user", content: userPrompt },
-    ],
-    thinking: { type: "disabled" },
-  });
-  return completion.choices[0]?.message?.content ?? "";
+  return chat({ system, messages: [{ role: "user", content: userPrompt }] });
 }
 
 // ---------- Question generation ----------
@@ -313,18 +291,13 @@ export async function generateVocabGame(count = 6): Promise<VocabGameItem[]> {
 // ---------- AI Tutor chat ----------
 
 export async function tutorChat(messages: TutorMessage[]): Promise<string> {
-  const client = await zai();
-  const completion = await client.chat.completions.create({
-    messages: [
-      { role: "assistant", content: SYSTEM_TUTOR },
-      ...messages.map((m) => ({
-        role: m.role === "user" ? ("user" as const) : ("assistant" as const),
-        content: m.content,
-      })),
-    ],
-    thinking: { type: "disabled" },
+  return chat({
+    system: SYSTEM_TUTOR,
+    messages: messages.map((m) => ({
+      role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+      content: m.content,
+    })),
   });
-  return completion.choices[0]?.message?.content ?? "";
 }
 
 // ---------- Listening transcript only (for TTS) ----------

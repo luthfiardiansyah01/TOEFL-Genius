@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import ZAI from "z-ai-web-dev-sdk";
 import { evaluateSpeaking } from "@/lib/ai";
+import { transcribeAudio } from "@/lib/audio";
 import { recordActivity } from "@/lib/gamification";
 import { db } from "@/lib/db";
 import { XP_REWARDS } from "@/lib/constants";
@@ -41,9 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Transcribe with ASR
-    const zai = await ZAI.create();
-    const asrResp = await zai.audio.asr.create({ file_base64: audioBase64 });
-    const transcript = (asrResp.text || "").trim();
+    const transcript = await transcribeAudio(audioBase64);
 
     if (!transcript) {
       return NextResponse.json(

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import ZAI from "z-ai-web-dev-sdk";
+import { synthesizeSpeech } from "@/lib/audio";
 
 export const dynamic = "force-dynamic";
 
@@ -33,20 +33,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const zai = await ZAI.create();
     const chunks = splitTextIntoChunks(text);
     const buffers: Buffer[] = [];
 
     for (const chunk of chunks) {
-      const response = await zai.audio.tts.create({
-        input: chunk,
-        voice: "tongtong",
-        speed: Math.min(2, Math.max(0.5, speed)),
-        response_format: "wav",
-        stream: false,
-      });
-      const arrayBuffer = await response.arrayBuffer();
-      buffers.push(Buffer.from(new Uint8Array(arrayBuffer)));
+      buffers.push(await synthesizeSpeech(chunk, { speed }));
     }
 
     // Concatenate WAV buffers (naive concatenation works for playback in most browsers
